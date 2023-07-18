@@ -1,5 +1,4 @@
 #![feature(generic_const_exprs, specialization)]
-
 use std::array::{self, from_fn};
 
 pub trait Sqrt {
@@ -22,15 +21,9 @@ pub trait Zero {
     fn zero() -> Self;
 }
 
-impl Zero for f64 {
-    fn zero() -> f64 {
-        0.
-    }
-}
-
-impl Zero for f32 {
-    fn zero() -> f32 {
-        0.
+impl<T> Zero for T where T: From<u8> {
+    fn zero() -> Self {
+        0.into()
     }
 }
 
@@ -109,6 +102,20 @@ where [(); M * N]: Sized,
             }
             accumulator
         }) }
+    }
+}
+
+impl<T: Zero + Copy + std::ops::Add<Output = T> + std::ops::Mul<Output = T>, const ROWS: usize> Matrix<T, ROWS, 1> 
+where [(); ROWS * 1]: Sized {
+    fn norm_squared(self) -> T {
+        self.data.into_iter().fold(T::zero(), |accum, cur| accum + (cur*cur))
+    }
+}
+
+impl<T: Sqrt + Zero + Copy + std::ops::Add<Output = T> + std::ops::Mul<Output = T>, const ROWS: usize> Matrix<T, ROWS, 1>
+where [(); ROWS * 1]: Sized {
+    fn norm(self) -> T {
+        self.norm_squared().sqrt()
     }
 }
 
